@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS packrat_users;
+DROP TABLE IF EXISTS packrat_users cascade;

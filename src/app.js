@@ -6,6 +6,8 @@ const helmet = require('helmet');
 const { NODE_ENV } = require('./config');
 const authRouter = require('./auth/auth-router');
 const usersRouter = require('./users/users-router');
+const itemsRouter = require('./items/items-router');
+const collectionsRouter = require('./collections/collections-router');
 
 const app = express();
 
@@ -18,6 +20,9 @@ app.use(cors());
 
 app.use('/packrat/auth', authRouter);
 app.use('/packrat/users', usersRouter);
+app.use('/packrat/collections', collectionsRouter);
+app.use('/packrat/items', itemsRouter);
+
 
 
 app.use(function errorHandler(error, req, res, next) {
