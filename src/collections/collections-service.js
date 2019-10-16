@@ -9,8 +9,9 @@ const CollectionsService = {
   },
 
   getById(db, id) {
+    //console.log(id);
     return CollectionsService.getAllCollections(db)
-      .where('collection.id', id)
+      .where('id', id)
       .first();
   },
 }

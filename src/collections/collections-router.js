@@ -1,8 +1,14 @@
 const express = require('express');
+const xss = require('xss');
 const CollectionsService = require('./collections-service');
 const { requireAuth } = require('../middleware/jwt-auth')
 
 const collectionsRouter = express.Router();
+
+const serializeCollection = collection => ({
+  id: collection.id,
+  title: xss(collection.title),
+});
 
 collectionsRouter
   .route('/')
@@ -15,12 +21,27 @@ collectionsRouter
   });
 
 collectionsRouter
-  .route('/:collection_id')
-  .all(requireAuth)
-  .all(checkCollectionExists)
-  .get((req, res) => {
-    res.json(res.Collection)
-  })
+.route('/:collection_id')
+.all((req, res, next) => {
+  //console.log(req.params.collection_id)
+  CollectionsService.getById(
+    req.app.get('db'),
+    req.params.collection_id
+  )
+    .then(collection => {
+      if (!collection) {
+        return res.status(404).json({
+          error: { message: 'collection not found' }
+        });
+      }
+      res.collection = collection;
+      next();
+    })
+    .catch(next);
+})
+.get((req, res, next) => {
+  res.json(serializeCollection(res.collection));
+})
 
 collectionsRouter.route('/:collection_id/items')
   .all(checkCollectionExists)

@@ -5,8 +5,9 @@ const ItemsService = {
     return db.from('packrat_items').select('*');
   },
   getById(db, id) {
+    //console.log('get by id', id)
     return ItemsService.getAllItems(db)
-      .where('item.id', id)
+      .where('id', id)
       .first();
   }
 };
