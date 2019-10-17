@@ -14,6 +14,17 @@ const CollectionsService = {
       .where('id', id)
       .first();
   },
+
+  insertCollection(db, newCollection) {
+    console.log(newCollection);
+    return db 
+      .insert(newCollection)
+      .into('packrat_collections')
+      .returning('*')
+      .then(rows => {
+        return rows[0];
+      });
+  },
 }
 
 module.exports = CollectionsService;

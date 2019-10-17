@@ -1,16 +1,18 @@
 const express = require('express');
+const path = require('path');
 const xss = require('xss');
 const ItemsService = require('./items-service');
 const { requireAuth } = require('../middleware/jwt-auth');
 
 const itemsRouter = express.Router();
+const jsonParser = express.json();
 
 const serializeItem = item => ({
     id: item.id,
     title: xss(item.title),
     info: item.info,
     collection_id: item.collection_id
-  });
+});
 
 itemsRouter
   .route('/')
@@ -20,14 +22,58 @@ itemsRouter
         res.json(items);
       })
       .catch(next);
+  })
+  .post(jsonParser, (req, res, next) => {
+    const { title, info, year_released, collection_id } = req.body;
+
+    console.log(req.body)
+    if (!title) {
+      console.log('Title is required');
+      return res 
+        .status(400)
+        .send('Invalid title');
+    }
+    if (!info) {
+      console.log('Info is required');
+      return res 
+        .status(400)
+        .send('Invalid data');
+    }
+    if (!year_released) {
+      console.log('Year Released is required');
+      return res 
+        .status(400)
+        .send('Invalid data');
+    }
+    if (!collection_id) {
+      console.log('Collection_id is required');
+      return res 
+        .status(400)
+        .send('Invalid data');
+    }
+
+    const newItem = { title, info, year_released, collection_id  };
+
+    ItemsService.insertItem(
+      req.app.get('db'),
+      newItem
+    )
+      .then(item => {
+        console.log(`item with id ${item.id} created.`);
+        res
+          .status(201)
+          .location(path.posix.join(req.originalUrl, `/${item.id}`))
+          .json(serializeItem(item));
+      })
+      .catch(next);
   });
 
 itemsRouter
   .route('/:item_id')
   .all(requireAuth)
-  .all((req, res, next) => {
-      console.log('items router /:item_id')
-    ItemsService.getById(
+  .all((req, res, next ) => {
+      //console.log('items router /:item_id')
+    return ItemsService.getById(
       req.app.get('db'),
       req.params.item_id
     )
@@ -45,6 +91,41 @@ itemsRouter
   .get((req, res, next) => {
     res.json(serializeItem(res.item));
   })
+  .delete((req, res, next) => {
+    const { item_id } = req.params;
+    ItemsService.deleteItem(
+        req.app.get('db'),
+        item_id
+    )
+    .then(numRowsAffected => {
+        console.log(`Item with id ${item_id} deleted.`)
+       return res.status(204).end();
+    })
+    .catch(next);
+  })
+  .patch(jsonParser, (req, res, next) => {
+    const { title, info, year_released, collection_id  } = req.body;
+    const itemToUpdate = { title, info, year_released, collection_id  };
+
+    const numOfValues = Object.values(itemToUpdate).filter(Boolean).length;
+    if (numOfValues === 0) {
+      return res.status(400).json({
+        error: {
+          message: 'Request body must contain either \'title\', \'info\',\'year_released\',\'collection_id\''
+        }
+      });
+    }
+
+    ItemsService.updateItem(
+      req.app.get('db'),
+      req.params.item_id,
+      itemToUpdate
+    )
+      .then(numRowsAffected => {
+        res.status(204).end();
+      })
+      .catch(next);
+  });
 
 itemsRouter
   .route('/item/:item_id')

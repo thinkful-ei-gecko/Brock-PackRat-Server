@@ -1,9 +1,11 @@
+const path = require('path');
 const express = require('express');
 const xss = require('xss');
 const CollectionsService = require('./collections-service');
 const { requireAuth } = require('../middleware/jwt-auth')
 
 const collectionsRouter = express.Router();
+const jsonParser = express.json();
 
 const serializeCollection = collection => ({
   id: collection.id,
@@ -16,6 +18,31 @@ collectionsRouter
     CollectionsService.getAllCollections(req.app.get('db'))
       .then(collections => {
         res.json(collections);
+      })
+      .catch(next);
+  })
+  .post(jsonParser, (req, res, next) => {
+    const { title } = req.body;
+
+    if (!title) {
+      console.error('Title is required');
+      return res 
+        .status(400)
+        .send('Invalid data');
+    }
+
+    const newCollection = { title };
+
+    CollectionsService.insertCollection(
+      req.app.get('db'),
+      newCollection
+    )
+      .then(collection => {
+        console.log(`collection with id ${collection.id} created.`);
+        res
+          .status(201)
+          .location(path.posix.join(req.originalUrl, `/${collection.id}`))
+          .json(serializeCollection(collection));
       })
       .catch(next);
   });
