@@ -10,4 +10,4 @@ CREATE TABLE packrat_items (
 
 ALTER TABLE packrat_collections
   ADD COLUMN
-    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL NOT NULL;
+    user_id INTEGER REFERENCES packrat_users(id) ON DELETE SET NULL NOT NULL;

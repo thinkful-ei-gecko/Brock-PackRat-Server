@@ -14,14 +14,15 @@ const serializeCollection = collection => ({
 
 collectionsRouter
   .route("/")
-  .get((req, res, next) => {
-    CollectionsService.getAllCollections(req.app.get("db"))
-      .then(collections => {
-        res.json(collections);
-      })
-      .catch(next);
+  .get(requireAuth, (req, res, next) => {
+  const db = req.app.get("db");
+  CollectionsService.getCollectionsByUserId(db, req.user.id)
+    .then(collections => {
+      return res.status(200).json(collections.map(serializeCollection)); 
+    })
+    .catch(next);
   })
-  .post(jsonParser, (req, res, next) => {
+  .post(requireAuth, jsonParser, (req, res, next) => {
     const { title } = req.body;
 
     if (!title) {
@@ -30,6 +31,7 @@ collectionsRouter
     }
 
     const newCollection = { title };
+    newCollection.user_id = req.user.id;
 
     CollectionsService.insertCollection(req.app.get("db"), newCollection)
       .then(collection => {
@@ -41,17 +43,6 @@ collectionsRouter
       })
       .catch(next);
   });
-
-collectionsRouter
-  .route("/all")
-  .get(requireAuth, (req, res, next) => {
-  const db = req.app.get("db");
-  CollectionsService.getCollectionsByUserId(db, req.user.id)
-    .then(shows => {
-      return res.status(200).json(shows.map(serializeCollection)); 
-    })
-    .catch(next);
-});
 
 collectionsRouter
   .route("/:collection_id")
@@ -70,6 +61,18 @@ collectionsRouter
   })
   .get((req, res, next) => {
     res.json(serializeCollection(res.collection));
+  })
+  .delete((req, res, next) => {
+    const { collection_id } = req.params;
+    CollectionsService.deleteCollection(
+      req.app.get('db'),
+      collection_id
+    )
+      .then(numRowsAffected => {
+        console.log(`Collection with id ${collection_id} deleted.`);
+        res.status(204).end();
+      })
+      .catch(next);
   });
 
 collectionsRouter

@@ -32,6 +32,12 @@ const CollectionsService = {
         return rows[0];
       });
   },
+  
+  deleteCollection(db, id) {
+    return db('packrat_collections')
+      .where({ id })
+      .delete();
+  },
 }
 
 module.exports = CollectionsService;

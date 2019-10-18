@@ -30,10 +30,10 @@ const ItemsService = {
       .delete();
   },
 
-  updateItem(db, id, newItemTitle) {
+  updateItem(db, id, newItemFields) {
     return db('packrat_items')
       .where({ id })
-      .update(newItemTitle)
+      .update(newItemFields);
   }
 };
 
