@@ -8,6 +8,13 @@ const CollectionsService = {
       .select('*');
   },
 
+  getCollectionsByUserId(db, userId) {
+    return db
+      .select('*')
+      .from('packrat_collections')
+      .where( { user_id: userId } );
+  },
+
   getById(db, id) {
     //console.log(id);
     return CollectionsService.getAllCollections(db)

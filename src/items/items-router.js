@@ -11,6 +11,7 @@ const serializeItem = item => ({
     id: item.id,
     title: xss(item.title),
     info: item.info,
+    image_url: item.image_url,
     collection_id: item.collection_id
 });
 
@@ -24,7 +25,7 @@ itemsRouter
       .catch(next);
   })
   .post(jsonParser, (req, res, next) => {
-    const { title, info, year_released, collection_id } = req.body;
+    const { title, info, year_released, image_url, collection_id } = req.body;
 
     console.log(req.body)
     if (!title) {
@@ -52,7 +53,7 @@ itemsRouter
         .send('Invalid data');
     }
 
-    const newItem = { title, info, year_released, collection_id  };
+    const newItem = { title, info, year_released, image_url, collection_id  };
 
     ItemsService.insertItem(
       req.app.get('db'),
